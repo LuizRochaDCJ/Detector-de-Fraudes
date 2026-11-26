@@ -80,21 +80,20 @@ Informe o IP do servidor quando solicitado e acompanhe os resultados no dashboar
 
 - Celular Android.
 - Aplicativo Termux instalado.
-- Arquivo `atacante_android.py` baixado na pasta `Downloads` do celular.
 - Celular e servidor conectados à mesma rede Wi-Fi.
 
 ### 2. Preparar o Termux
 
-Abra o Termux e execute:
+Abra o Termux e atualize os pacotes:
 
 ```bash
 pkg update && pkg upgrade
 ```
 
-Instale o Python:
+Instale o Python e o cURL:
 
 ```bash
-pkg install python
+pkg install python curl
 ```
 
 Instale a biblioteca Requests:
@@ -103,45 +102,31 @@ Instale a biblioteca Requests:
 python -m pip install requests
 ```
 
-### 3. Permitir acesso aos arquivos do Android
+### 3. Baixar o simulador diretamente do GitHub
 
-Execute o comando:
-
-```bash
-termux-setup-storage
-```
-
-O Android exibirá uma solicitação de permissão. Autorize o acesso aos arquivos.
-
-Esse procedimento permite que o Termux acesse as pastas compartilhadas do armazenamento do celular.
-
-### 4. Acessar a pasta Downloads
-
-No Termux, execute:
+Primeiro, acesse a pasta interna do Termux:
 
 ```bash
-cd ~/storage/downloads
+cd ~
 ```
 
-Esse comando direciona o terminal para a pasta padrão `Downloads` do Android.
-
-Para conferir se o arquivo está disponível, execute:
+Agora, baixe o simulador:
 
 ```bash
-ls
+curl -L -o atacante_android.py https://raw.githubusercontent.com/LuizRochaDCJ/Detector-de-Fraudes/main/atacante_android.py
 ```
 
-Verifique se `atacante_android.py` aparece na listagem.
+O arquivo será salvo diretamente na pasta interna do Termux, sem necessidade de acessar a pasta Downloads ou conceder permissões de armazenamento.
 
-### 5. Executar o simulador
+### 4. Executar o simulador
 
-Ainda dentro da pasta Downloads, execute:
+Execute:
 
 ```bash
 python atacante_android.py
 ```
 
-### 6. Selecionar o perfil de simulação
+### 5. Selecionar o perfil de simulação
 
 O programa apresenta três opções:
 
@@ -149,11 +134,22 @@ O programa apresenta três opções:
 - **2 — Suspeito:** simula 15 requisições, com intervalo de 1 segundo.
 - **3 — Agressivo:** simula 20 requisições, com intervalo de 0,2 segundo.
 
-### 7. Informar o servidor
+### 6. Informar o servidor
 
 Digite o endereço IPv4 local do computador que está executando o servidor.
 
 O programa enviará as requisições e exibirá os códigos HTTP recebidos. Caso o servidor bloqueie o dispositivo, o simulador identificará a resposta HTTP 403 e encerrará a execução.
+
+### 7. Executar novamente
+
+Se precisar executar o simulador novamente, basta abrir o Termux e utilizar:
+
+```bash
+cd ~
+python atacante_android.py
+```
+
+Não é necessário baixar o arquivo novamente, exceto quando houver uma atualização do script no GitHub.
 
 
 ## Segurança e condições de uso
