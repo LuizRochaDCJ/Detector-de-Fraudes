@@ -52,11 +52,9 @@ O servidor ficará disponível na porta 5000.
 
 Em um navegador, acesse:
 
-```text
 http://IP_DO_SERVIDOR:5000/dashboard
-```
 
-Substitua `IP_DO_SERVIDOR` pelo endereço IPv4 local do computador que está executando o servidor.
+Substitua IP_DO_SERVIDOR pelo endereço IPv4 local do computador que está executando o servidor.
 
 ### 5. Executar uma simulação
 
