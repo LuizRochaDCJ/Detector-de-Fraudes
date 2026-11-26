@@ -27,7 +27,7 @@ def analisar_requisicao():
         }), 403
 
     # Consultas do dashboard nao geram pontuacao
-    if request.path in ["/dashboard", "/api/estado"]:
+    if request.path in ["/dashboard", "/api/estado", "/atacar", "/favicon.ico"]:
         return None
 
     # Analisa o comportamento do IP
@@ -406,6 +406,105 @@ def dashboard():
 
         </script>
 
+    </body>
+    </html>
+    """
+
+    return render_template_string(html)
+
+
+# ==========================================
+# SIMULADOR DE ATAQUE PELO NAVEGADOR (celular)
+# Abra http://IP_DO_SERVIDOR:5000/atacar no celular.
+# As requisicoes saem do IP do proprio celular.
+# ==========================================
+
+@app.route("/atacar", methods=["GET"])
+def atacar():
+
+    html = """
+    <!DOCTYPE html>
+    <html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Simulador de Ataques</title>
+        <style>
+            * { box-sizing: border-box; }
+            body { margin: 0; padding: 20px; background: #10151f; color: #e5e7eb;
+                   font-family: Arial, sans-serif; }
+            h1 { font-size: 22px; margin: 0 0 4px; }
+            .sub { color: #9ca3af; font-size: 13px; margin-bottom: 20px; }
+            button { width: 100%; padding: 18px; margin-bottom: 12px; border: 0;
+                     border-radius: 10px; font-size: 17px; font-weight: bold; color: #fff; }
+            button:disabled { opacity: .4; }
+            .b1 { background: #15803d; } .b2 { background: #b45309; } .b3 { background: #b91c1c; }
+            .parar { background: #374151; }
+            .info { font-size: 12px; font-weight: normal; display: block; margin-top: 4px; opacity: .85; }
+            #status { padding: 14px; border-radius: 10px; background: #1c2533;
+                      border: 1px solid #303c4e; margin: 8px 0 12px; font-weight: bold; }
+            #log { background: #0b0f16; border-radius: 10px; padding: 12px; height: 260px;
+                   overflow-y: auto; font-family: monospace; font-size: 13px; }
+            .ok { color: #86efac; } .bloq { color: #fca5a5; font-weight: bold; } .err { color: #fde047; }
+        </style>
+    </head>
+    <body>
+        <h1>SIMULADOR DE ATAQUES</h1>
+        <div class="sub">Requisicoes saem deste aparelho para o servidor</div>
+
+        <button class="b1" onclick="iniciar('NORMAL', 10, 3000)">1 - NORMAL
+            <span class="info">10 requisicoes, 1 a cada 3 s</span></button>
+        <button class="b2" onclick="iniciar('SUSPEITO', 15, 1000)">2 - SUSPEITO
+            <span class="info">15 requisicoes, 1 a cada 1 s</span></button>
+        <button class="b3" onclick="iniciar('AGRESSIVO', 20, 200)">3 - AGRESSIVO
+            <span class="info">20 requisicoes, 1 a cada 0,2 s</span></button>
+        <button class="parar" onclick="parar()">PARAR</button>
+
+        <div id="status">Escolha um perfil.</div>
+        <div id="log"></div>
+
+        <script>
+            let rodando = false;
+            const espera = ms => new Promise(r => setTimeout(r, ms));
+            const log = (txt, cls) => {
+                const el = document.getElementById("log");
+                el.innerHTML += `<div class="${cls}">${txt}</div>`;
+                el.scrollTop = el.scrollHeight;
+            };
+            const status = txt => document.getElementById("status").textContent = txt;
+            const botoes = on => document.querySelectorAll("button:not(.parar)")
+                .forEach(b => b.disabled = !on);
+
+            function parar() { rodando = false; }
+
+            async function iniciar(nome, total, intervalo) {
+                rodando = true; botoes(false);
+                document.getElementById("log").innerHTML = "";
+                status("Perfil " + nome + " em execucao...");
+                for (let i = 1; i <= total && rodando; i++) {
+                    const hora = new Date().toLocaleTimeString("pt-BR");
+                    try {
+                        const r = await fetch("/?t=" + Date.now(), { cache: "no-store" });
+                        if (r.status === 403) {
+                            log(`[${hora}] Requisicao ${i}/${total} | HTTP 403`, "bloq");
+                            status("BLOQUEIO CONFIRMADO: o servidor recusou o acesso.");
+                            rodando = false; break;
+                        }
+                        log(`[${hora}] Requisicao ${i}/${total} | HTTP ${r.status}`, "ok");
+                    } catch (e) {
+                        log(`[${hora}] Erro de conexao`, "err");
+                        status("Erro de conexao com o servidor."); rodando = false; break;
+                    }
+                    if (i < total) await espera(intervalo);
+                    if (i === total) status("Perfil " + nome + " finalizado.");
+                }
+                if (!document.getElementById("status").textContent.startsWith("BLOQUEIO")
+                    && !document.getElementById("status").textContent.startsWith("Erro")
+                    && !document.getElementById("status").textContent.endsWith("finalizado."))
+                    status("Simulacao interrompida.");
+                rodando = false; botoes(true);
+            }
+        </script>
     </body>
     </html>
     """
